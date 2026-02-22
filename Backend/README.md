@@ -139,3 +139,105 @@ Upon successful registration, the endpoint returns a JWT token that can be used 
 
 - **Payload**: `{ _id: user._id }`
 - **Secret**: `process.env.JWT_SECRET`
+
+---
+
+## Endpoint: `/users/login`
+
+### Method
+
+`POST`
+
+### Description
+
+This endpoint authenticates an existing user. It validates the provided credentials, compares the password with the stored hash, and returns a JWT token and user details on success.
+
+---
+
+## Request Data Format
+
+The endpoint expects a JSON request body with the following structure:
+
+```json
+{
+  "email": "string (required, valid email format)",
+  "password": "string (required, min 6 characters)"
+}
+```
+
+### Request Parameters
+
+| Field      | Type   | Required | Validation         | Description          |
+| ---------- | ------ | -------- | ------------------ | -------------------- |
+| `email`    | String | Yes      | Valid email format | User's email address |
+| `password` | String | Yes      | Min 6 characters   | User's password      |
+
+---
+
+## Response
+
+### Status Code: 200 (OK)
+
+**Success Response**
+
+```json
+{
+  "token": "jwt_token_string",
+  "user": {
+    "_id": "user_id",
+    "fullname": {
+      "firstname": "John",
+      "lastname": "Doe"
+    },
+    "email": "john@example.com",
+    "socketId": null
+  }
+}
+```
+
+### Status Code: 400 (Bad Request)
+
+**Validation Error Response**
+
+```json
+{
+  "errors": [
+    /* array of validation errors from express-validator */
+  ]
+}
+```
+
+### Status Code: 401 (Unauthorized)
+
+**Invalid Credentials Response**
+
+```json
+{ "message": "Invalid email or password" }
+```
+
+---
+
+## Example Request
+
+```bash
+curl -X POST http://localhost:3000/users/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john@example.com",
+    "password": "password123"
+  }'
+```
+
+---
+
+## Validation Rules (login)
+
+1. **Email**: Must be a valid email format
+2. **Password**: Must be at least 6 characters long
+
+---
+
+## Error Handling (login)
+
+- If validation fails, the endpoint returns a 400 status with an array of validation errors.
+- If credentials are invalid, the endpoint returns a 401 status with a generic error message to avoid leaking which field failed.
