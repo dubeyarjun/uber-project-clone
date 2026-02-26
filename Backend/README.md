@@ -241,3 +241,123 @@ curl -X POST http://localhost:3000/users/login \
 
 - If validation fails, the endpoint returns a 400 status with an array of validation errors.
 - If credentials are invalid, the endpoint returns a 401 status with a generic error message to avoid leaking which field failed.
+
+---
+
+## Endpoint: `/users/profile`
+
+### Method
+
+`GET`
+
+### Description
+
+This endpoint retrieves the authenticated user's profile information. It requires a valid JWT token for authentication.
+
+---
+
+## Authentication
+
+This endpoint requires authentication. The JWT token can be sent via:
+- **Cookie**: `token` cookie
+- **Header**: `Authorization: Bearer <jwt_token>`
+
+---
+
+## Response
+
+### Status Code: 200 (OK)
+
+**Success Response**
+
+```json
+{
+  "user": {
+    "_id": "user_id",
+    "fullname": {
+      "firstname": "John",
+      "lastname": "Doe"
+    },
+    "email": "john@example.com",
+    "socketId": null,
+    "createdAt": "2026-02-21T10:00:00.000Z",
+    "updatedAt": "2026-02-21T10:00:00.000Z"
+  }
+}
+```
+
+### Status Code: 401 (Unauthorized)
+
+**Unauthorized Response**
+
+```json
+{ "message": "Unauthorized" }
+```
+
+---
+
+## Example Request
+
+```bash
+curl -X GET http://localhost:3000/users/profile \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+---
+
+## Endpoint: `/users/logout`
+
+### Method
+
+`GET`
+
+### Description
+
+This endpoint logs out the authenticated user. It clears the authentication cookie, blacklists the JWT token to prevent further use, and returns a success message.
+
+---
+
+## Authentication
+
+This endpoint requires authentication. The JWT token can be sent via:
+- **Cookie**: `token` cookie
+- **Header**: `Authorization: Bearer <jwt_token>`
+
+---
+
+## Response
+
+### Status Code: 200 (OK)
+
+**Success Response**
+
+```json
+{
+  "message": "Logged out successfully"
+}
+```
+
+### Status Code: 401 (Unauthorized)
+
+**Unauthorized Response**
+
+```json
+{ "message": "Unauthorized" }
+```
+
+---
+
+## Example Request
+
+```bash
+curl -X GET http://localhost:3000/users/logout \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+---
+
+## Error Handling (logout)
+
+- The endpoint clears the `token` cookie from the client
+- The token is added to the blacklist to prevent its use in future requests
+- If the user is not authenticated, the endpoint returns a 401 status
