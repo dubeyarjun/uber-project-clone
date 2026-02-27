@@ -259,6 +259,7 @@ This endpoint retrieves the authenticated user's profile information. It require
 ## Authentication
 
 This endpoint requires authentication. The JWT token can be sent via:
+
 - **Cookie**: `token` cookie
 - **Header**: `Authorization: Bearer <jwt_token>`
 
@@ -320,6 +321,7 @@ This endpoint logs out the authenticated user. It clears the authentication cook
 ## Authentication
 
 This endpoint requires authentication. The JWT token can be sent via:
+
 - **Cookie**: `token` cookie
 - **Header**: `Authorization: Bearer <jwt_token>`
 
@@ -361,3 +363,140 @@ curl -X GET http://localhost:3000/users/logout \
 - The endpoint clears the `token` cookie from the client
 - The token is added to the blacklist to prevent its use in future requests
 - If the user is not authenticated, the endpoint returns a 401 status
+
+---
+
+# Captain Endpoints Documentation
+
+## Endpoint: `/captains/register`
+
+### Method
+
+`POST`
+
+### Description
+
+Register a new captain (driver) account. Input is validated, password is hashed, and the captain document containing personal and vehicle details is stored. A JWT token is returned on success.
+
+---
+
+## Request Data Format
+
+License allows the following JSON structure:
+
+```json
+{
+  "fullname": {
+    "firstname": "string (required, min 3 characters)",
+    "lastname": "string (required, min 3 characters)"
+  },
+  "email": "string (required, valid email format)",
+  "password": "string (required, min 6 characters)",
+  "vehicle": {
+    "color": "string (required, min 3 characters)",
+    "plate": "string (required, min 3 characters)",
+    "capacity": "integer (required, min 1)",
+    "vehicleType": "string (required, one of car, motorcycle, auto)"
+  }
+}
+```
+
+### Request Parameters
+
+| Field                 | Type    | Required | Validation                         | Description                            |
+| --------------------- | ------- | -------- | ---------------------------------- | -------------------------------------- |
+| `fullname.firstname`  | String  | Yes      | Min 3 characters                   | Captain's first name                   |
+| `fullname.lastname`   | String  | Yes      | Min 3 characters                   | Captain's last name                    |
+| `email`               | String  | Yes      | Valid email format                 | Captain's email (must be unique)       |
+| `password`            | String  | Yes      | Min 6 characters                   | Password (hashed before storage)       |
+| `vehicle.color`       | String  | Yes      | Min 3 characters                   | Color of the vehicle                   |
+| `vehicle.plate`       | String  | Yes      | Min 3 characters                   | License plate number                   |
+| `vehicle.capacity`    | Integer | Yes      | Minimum 1                          | Number of passengers vehicle can carry |
+| `vehicle.vehicleType` | String  | Yes      | One of `car`, `motorcycle`, `auto` | Type of vehicle                        |
+
+---
+
+## Response
+
+### Status Code: 201 (Created)
+
+**Success Response**
+
+```json
+{
+  "token": "jwt_token_string",
+  "captain": {
+    "_id": "captain_id",
+    "fullname": {
+      "firstname": "Jane",
+      "lastname": "Smith"
+    },
+    "email": "jane@example.com",
+    "vehicle": {
+      "color": "red",
+      "plate": "ABC123",
+      "capacity": 4,
+      "vehicleType": "car"
+    },
+    "createdAt": "2026-02-26T12:00:00.000Z",
+    "updatedAt": "2026-02-26T12:00:00.000Z"
+  }
+}
+```
+
+### Status Code: 400 (Bad Request)
+
+**Validation Error Response**
+
+```json
+{
+  "errors": [
+    /* array of validation errors from express-validator */
+  ]
+}
+```
+
+---
+
+## Example Request
+
+```bash
+curl -X POST http://localhost:3000/captains/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fullname": {
+      "firstname": "Jane",
+      "lastname": "Smith"
+    },
+    "email": "jane@example.com",
+    "password": "password123",
+    "vehicle": {
+      "color": "red",
+      "plate": "ABC123",
+      "capacity": 4,
+      "vehicleType": "car"
+    }
+  }'
+```
+
+---
+
+## Validation Rules (captain registration)
+
+1. **Email**: Must be a valid email format
+2. **First Name**: Must be at least 3 characters long
+3. **Last Name**: Must be at least 3 characters long
+4. **Password**: Must be at least 6 characters long
+5. **Vehicle Color**: At least 3 characters
+6. **Vehicle Plate**: At least 3 characters
+7. **Vehicle Capacity**: Integer ≥ 1
+8. **Vehicle Type**: One of `car`, `motorcycle`, or `auto`
+
+---
+
+## Error Handling (captain registration)
+
+- Returns 400 with validation errors if input is invalid
+- Checks for existing captain by email and returns 400 if found
+- Password is hashed with bcrypt before saving
+- A JWT token is generated using the captain's `_id` and `JWT_SECRET`
